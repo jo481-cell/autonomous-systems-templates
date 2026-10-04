@@ -1,0 +1,42 @@
+{
+  "inputs": {
+    "syntax_invalid": "{\"invoice_id\": \"INV-0042\", \"amount\": 249.0, \"currency\": \"CAD\",}",
+    "schema_invalid": "{\"invoice_id\": \"INV-0042\", \"amount\": \"249.0\", \"currency\": \"CAD\"}",
+    "semantic_invalid": "{\"invoice_id\": \"INV-0042\", \"amount\": 249.0, \"currency\": \"USD\"}",
+    "valid_payload": "{\"invoice_id\": \"INV-0042\", \"amount\": 249.0, \"currency\": \"CAD\"}"
+  },
+  "results": {
+    "syntax_invalid": {
+      "syntax": "REJECTED",
+      "schema": "NOT CHECKED",
+      "semantics": "NOT CHECKED"
+    },
+    "schema_invalid": {
+      "syntax": "VALID",
+      "schema": "REJECTED",
+      "semantics": "NOT CHECKED"
+    },
+    "semantic_invalid": {
+      "syntax": "VALID",
+      "schema": "VALID",
+      "semantics": "REJECTED",
+      "payload": {
+        "invoice_id": "INV-0042",
+        "amount": 249.0,
+        "currency": "USD"
+      },
+      "policy": "CAD invoices only; amount at most 1000"
+    },
+    "valid_payload": {
+      "syntax": "VALID",
+      "schema": "VALID",
+      "semantics": "ACCEPTED",
+      "payload": {
+        "invoice_id": "INV-0042",
+        "amount": 249.0,
+        "currency": "CAD"
+      },
+      "policy": "CAD invoices only; amount at most 1000"
+    }
+  }
+}

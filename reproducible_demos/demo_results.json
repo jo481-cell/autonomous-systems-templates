@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "executed_at_utc": "2026-10-04T16:39:47.973647+00:00",
+  "environment": {
+    "python": "3.12.10",
+    "pydantic": "2.13.4",
+    "pytest": "8.4.2",
+    "device": "CPU",
+    "models_called": 0,
+    "network_requests": 0
+  },
+  "source_status": "New independently authored demonstration code. Existing repository files unchanged.",
+  "episodes": [
+    {
+      "episode": 4,
+      "title": "A Python Agent with Explicit Failure States",
+      "disclosure": "Executed CPU demonstration. Decisions and patches are deterministic fixtures. No language model was called.",
+      "steps": [
+        {
+          "id": "state_success",
+          "title": "Explicit states",
+          "command": "machine.run(task, fixture_decision())",
+          "output": "INGESTION -> TRIAGE\nTOOL_EXECUTION -> VERIFICATION\nCOMPLETED: result 9\nDecision: deterministic fixture",
+          "before": "{\"tool\": \"sum_numbers\", \"arguments\": {\"values\": [2, 3, 4]}}",
+          "after": "{\"state\": \"COMPLETED\", \"result\": 9, \"history\": [\"INGESTION\", \"TRIAGE\", \"TOOL_EXECUTION\", \"VERIFICATION\", \"COMPLETED\"]}"
+        },
+        {
+          "id": "invalid_decision",
+          "title": "Invalid output stops",
+          "command": "machine.run(task, '{\"tool\": 42, \"arguments\": {}}')",
+          "output": "FAILED: invalid triage payload",
+          "before": "{\"tool\": 42, \"arguments\": {}}",
+          "after": "No tool executed"
+        },
+        {
+          "id": "blocked_tool",
+          "title": "Allowlist enforced",
+          "command": "machine.run(task, fixture_decision(\"delete_workspace\"))",
+          "output": "FAILED: tool not allowlisted",
+          "before": "tool: delete_workspace",
+          "after": "No tool executed"
+        }
+      ],
+      "checks": {
+        "success_state": true,
+        "invalid_output_stopped": true,
+        "unknown_tool_stopped": true,
+        "model_called": false
+      }
+    },
+    {
+      "episode": 5,
+      "title": "Valid JSON Is Only the First Check",
+      "disclosure": "Executed CPU demonstration. Decisions and patches are deterministic fixtures. No language model was called.",
+      "steps": [
+        {
+          "id": "syntax_invalid",
+          "title": "JSON syntax",
+          "command": "inspect_payload(sample)",
+          "output": "JSON syntax: REJECTED",
+          "before": "{\"invoice_id\": \"INV-0042\", \"amount\": 249.0, \"currency\": \"CAD\",}",
+          "after": "{\"syntax\": \"REJECTED\", \"schema\": \"NOT CHECKED\", \"semantics\": \"NOT CHECKED\"}"
+        },
+        {
+          "id": "schema_invalid",
+          "title": "Required structure",
+          "command": "inspect_payload(sample)",
+          "output": "JSON syntax: VALID\nSchema: REJECTED",
+          "before": "{\"invoice_id\": \"INV-0042\", \"amount\": \"249.0\", \"currency\": \"CAD\"}",
+          "after": "{\"syntax\": \"VALID\", \"schema\": \"REJECTED\", \"semantics\": \"NOT CHECKED\"}"
+        },
+        {
+          "id": "semantic_invalid",
+          "title": "Meaning and policy",
+          "command": "inspect_payload(sample)",
+          "output": "JSON syntax: VALID\nSchema: VALID\nSemantic policy: REJECTED",
+          "before": "{\"invoice_id\": \"INV-0042\", \"amount\": 249.0, \"currency\": \"USD\"}",
+          "after": "{\"syntax\": \"VALID\", \"schema\": \"VALID\", \"semantics\": \"REJECTED\", \"payload\": {\"invoice_id\": \"INV-0042\", \"amount\": 249.0, \"currency\": \"USD\"}, \"policy\": \"CAD invoices only; amount at most 1000\"}"
+        },
+        {
+          "id": "valid_payload",
+          "title": "All three checks",
+          "command": "inspect_payload(sample)",
+          "output": "JSON syntax: VALID\nSchema: VALID\nSemantic policy: ACCEPTED",
+          "before": "{\"invoice_id\": \"INV-0042\", \"amount\": 249.0, \"currency\": \"CAD\"}",
+          "after": "{\"syntax\": \"VALID\", \"schema\": \"VALID\", \"semantics\": \"ACCEPTED\", \"payload\": {\"invoice_id\": \"INV-0042\", \"amount\": 249.0, \"currency\": \"CAD\"}, \"policy\": \"CAD invoices only; amount at most 1000\"}"
+        },
+        {
+          "id": "ollama_request",
+          "title": "Pass the actual schema",
+          "command": "build_ollama_request(prompt)",
+          "output": "format: InvoicePayload.model_json_schema()\nstream: false\nLocal model call: NOT EXECUTED",
+          "before": "format: \"json\"",
+          "after": "format: schema object\nstream: false"
+        }
+      ],
+      "checks": {
+        "syntax_rejection": true,
+        "schema_rejection": true,
+        "semantic_rejection": true,
+        "valid_fixture_accepted": true,
+        "schema_in_format": true,
+        "stream_false": true,
+        "model_called": false
+      }
+    },
+    {
+      "episode": 6,
+      "title": "A Scoped Patch with a Real Rollback Check",
+      "disclosure": "Executed CPU demonstration. Decisions and patches are deterministic fixtures. No language model was called.",
+      "steps": [
+        {
+          "id": "fixture_failed",
+          "title": "A real failing fixture",
+          "command": "python -m pytest -q test_calculator.py",
+          "output": "pytest: 1 failed, 2 passed",
+          "before": "def divide(a, b):\n    return a * b",
+          "after": "assert divide(10, 2) == 5\nActual result: 20"
+        },
+        {
+          "id": "fixture_repaired",
+          "title": "Accept a tested patch",
+          "command": "try_repair(workspace, expected, good_patch)",
+          "output": "pytest: 3 passed\nCandidate: ACCEPTED\nPatch source: deterministic fixture",
+          "before": "def divide(a, b):\n    return a * b",
+          "after": "def divide(a, b):\n    return a / b"
+        },
+        {
+          "id": "regression_rejected",
+          "title": "Restore a rejected candidate",
+          "command": "try_repair(workspace, good_patch, bad_patch)",
+          "output": "pytest: 1 failed, 2 passed\nCandidate: REJECTED\nOriginal bytes: RESTORED",
+          "before": "def divide(a, b):\n    return 0",
+          "after": "def divide(a, b):\n    return a / b"
+        },
+        {
+          "id": "boundary_rejected",
+          "title": "Enforce the function boundary",
+          "command": "scoped_candidate(original, 'divide', expected, oversized_patch)",
+          "output": "REJECTED: edits outside target function",
+          "before": "divide patch + VERSION = \"modified\"",
+          "after": "Outside bytes unchanged"
+        }
+      ],
+      "checks": {
+        "fixture_tests_failed": true,
+        "accepted_patch_tests_passed": true,
+        "regression_rejected": true,
+        "byte_exact_restore": true,
+        "outside_function_rejected": true,
+        "temporary_git_fixture": true,
+        "model_called": false,
+        "commits_created": 0
+      }
+    }
+  ]
+}
