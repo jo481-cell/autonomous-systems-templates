@@ -1,0 +1,42 @@
+{
+  "decision_source": "deterministic fixture",
+  "valid_input": {
+    "tool": "sum_numbers",
+    "arguments": {
+      "values": [
+        2,
+        3,
+        4
+      ]
+    }
+  },
+  "valid": {
+    "state": "COMPLETED",
+    "result": 9,
+    "history": [
+      "INGESTION",
+      "TRIAGE",
+      "TOOL_EXECUTION",
+      "VERIFICATION",
+      "COMPLETED"
+    ]
+  },
+  "invalid": {
+    "state": "FAILED",
+    "reason": "invalid triage payload",
+    "history": [
+      "INGESTION",
+      "TRIAGE",
+      "FAILED"
+    ]
+  },
+  "blocked": {
+    "state": "FAILED",
+    "reason": "tool not allowlisted",
+    "history": [
+      "INGESTION",
+      "TRIAGE",
+      "FAILED"
+    ]
+  }
+}

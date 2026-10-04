@@ -1,0 +1,47 @@
+{
+  "model": "qwen2.5:7b",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Extract the invoice. Follow this schema: {\"additionalProperties\": false, \"properties\": {\"invoice_id\": {\"pattern\": \"^INV-[0-9]{4}$\", \"title\": \"Invoice Id\", \"type\": \"string\"}, \"amount\": {\"exclusiveMinimum\": 0, \"title\": \"Amount\", \"type\": \"number\"}, \"currency\": {\"enum\": [\"CAD\", \"USD\"], \"title\": \"Currency\", \"type\": \"string\"}}, \"required\": [\"invoice_id\", \"amount\", \"currency\"], \"title\": \"InvoicePayload\", \"type\": \"object\"}"
+    },
+    {
+      "role": "user",
+      "content": "Invoice INV-0042: CAD 249.00"
+    }
+  ],
+  "format": {
+    "additionalProperties": false,
+    "properties": {
+      "invoice_id": {
+        "pattern": "^INV-[0-9]{4}$",
+        "title": "Invoice Id",
+        "type": "string"
+      },
+      "amount": {
+        "exclusiveMinimum": 0,
+        "title": "Amount",
+        "type": "number"
+      },
+      "currency": {
+        "enum": [
+          "CAD",
+          "USD"
+        ],
+        "title": "Currency",
+        "type": "string"
+      }
+    },
+    "required": [
+      "invoice_id",
+      "amount",
+      "currency"
+    ],
+    "title": "InvoicePayload",
+    "type": "object"
+  },
+  "stream": false,
+  "options": {
+    "temperature": 0
+  }
+}
